@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body{
+            background-color: rgb(0, 0, 0);
+        }
+        #canvas{
+            /* border: 1px solid rgb(255, 255, 255); */
+            width: 99%;
+            height: 99%;
+        }
+        .controlbox{
+            /* border: 1px solid rgb(255, 255, 255); */
+            padding: 5px;
+            color: rgb(185, 185, 185);
+            display: flex;
+            justify-content: center;
+            
+        }
+        .textarea{
+            display: block;
+            width: 100%;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8.4px;
+            cursor: pointer;
+            box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+            background: #3071a9;
+            border-radius: 1.3px;
+            border: 0.2px solid #010101;
+        }
+
+        input[type=range]:focus::-webkit-slider-runnable-track {
+            background: #367ebd;
+        }
+
+        input[type=range]::-moz-range-track {
+            width: 100%;
+            height: 8.4px;
+            cursor: pointer;
+            box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+            background: #3071a9;
+            border-radius: 1.3px;
+            border: 0.2px solid #010101;
+        }
+
+input[type=range]::-ms-track {
+  width: 100%;
+  height: 8.4px;
+  cursor: pointer;
+  background: transparent;
+  border-color: transparent;
+  border-width: 16px 0;
+  color: transparent;
+}
+input[type=range]::-ms-fill-lower {
+  background: #2a6495;
+  border: 0.2px solid #010101;
+  border-radius: 2.6px;
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+}
+input[type=range]:focus::-ms-fill-lower {
+  background: #3071a9;
+}
+input[type=range]::-ms-fill-upper {
+  background: #3071a9;
+  border: 0.2px solid #010101;
+  border-radius: 2.6px;
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+}
+input[type=range]:focus::-ms-fill-upper {
+  background: #367ebd;
+}
+    </style>
+</head>
+<body>
+    <div class="controlbox">
+        <label for="speed">Speed</label>
+        <input type="range" name="speed" id="speed" min="10" max="100" value="30" onchange="changeSpeed()">
+        <input type="button" value="reset" onclick="reset();">
+    </div>
+    <canvas id="canvas">
+
+    </canvas>
+    <div class="controlbox">
+        <textarea class="textarea" name="content" id="textToDisplay" cols="30" rows="10"></textarea>
+    </div>
+    <script>
+        var canvas = document.getElementById('canvas');
+        var textToDisplay = document.getElementById('textToDisplay');
+        const ctx = canvas.getContext('2d');
+        var FPS = 30;
+        var counter = 0;
+        var initiated = false;
+        var pause = false;
+        var interval = null;
+
+        canvas.addEventListener("click", init);
+
+        var queue = [];
+
+        function init(){
+            if (!initiated) {
+                initiated =  true;
+                setInitialValues();
+                interval = setInterval(function(){
+                    principal();
+                }, 1000/FPS);
+            }else{
+                pauseScroll();
+            }
+        }
+
+        function reset(){
+            if (interval !== null) {
+                clearInterval(interval);
+            }
+            initiated = false;
+            init();
+            pause = false;
+        }
+
+        function changeSpeed(){
+            let speed = document.getElementById('speed').value;
+            FPS = speed;
+
+            clearInterval(interval);
+            interval = setInterval(function(){
+                    principal();
+                }, 1000/FPS);
+        }
+
+        function pauseScroll() {
+            if (pause) {
+                pause = false;
+            }else{
+                pause = true;
+            }
+        }
+
+        function setInitialValues(){
+            let w = window.innerWidth;
+            let h = window.innerHeight;
+            canvas.width  = w - 50;
+            canvas.height = h - 31;
+            counter = canvas.height;
+            let text = textToDisplay.value;
+            let stringArray = text.split(/(\s+)/);
+            let textLine = "";
+            queue = [];
+            let lastIndex = 0;
+            stringArray.forEach((text, index) => {
+                if (textLine.length > 34) {
+                    queue.push(textLine.trim());
+                    textLine = "";
+                } else {
+                    textLine = textLine + text;
+                }
+                lastIndex = index;
+            });
+            if(queue[lastIndex] != textLine.trim() && textLine.length > 0){
+                queue.push(textLine.trim());
+            }
+        }
+
+        function principal(){
+            draw();
+        }
+
+        function draw(){
+            resizeWindow();
+            ctx.font = '48px serif';
+            ctx.textAlign = "center";
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            let mid = canvas.width / 2;
+            if (queue.length != 0) {
+                queue.forEach((text, index) => {
+                    let hh = counter + index * 54 + 54;
+                    let seg = canvas.height / 9;
+                    let opacy = hh /canvas.height;
+                    opacy = opacy + 0.1;
+                    if (hh <= canvas.height *(1/3)) {
+                        ctx.fillStyle = 'rgba(255, 255, 255, '+opacy+')';
+                    }else{
+                        if (hh > canvas.height *(1/2)) {
+                            opacy = 1 - opacy + 0.2;
+                            ctx.fillStyle = 'rgba(255, 255, 255, '+opacy+')';
+                        }else{
+                            ctx.fillStyle = 'rgba(255, 255, 255, '+opacy+')';
+                        }
+                    }
+                    
+                    ctx.fillText(text, mid, hh);
+                });
+                if (!pause) {
+                    counter--;
+                }else{
+                    ctx.font = '248px serif';
+                    ctx.textAlign = "center";
+                    ctx.fillStyle = 'rgba(150, 150, 150, 0.5)';
+                    let aux1 = canvas.width / 2;
+                    let aux2 = canvas.height / 2;
+                    ctx.fillText("Pause", aux1, aux2);
+
+                }
+            }else{
+                ctx.font = '68px serif';
+                ctx.textAlign = "center";
+                ctx.fillStyle = 'rgba(150, 150, 150, 0.5)';
+                let aux1 = canvas.width / 2;
+                let aux2 = canvas.height / 2;
+                ctx.fillText("Insert new text", aux1, aux2 - 84);
+                ctx.fillText("in the text area down", aux1, aux2);
+                ctx.fillText("and press reset button", aux1, aux2 + 84);
+            }
+        }
+
+        function resizeWindow() {
+            let w = window.innerWidth;
+            let h = window.innerHeight;
+            
+            canvas.width  = w - 50;
+            canvas.height = h - 31;
+        }
+
+    </script>
+</body>
+</html>
