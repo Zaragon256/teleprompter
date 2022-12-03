@@ -51,39 +51,41 @@
             border: 0.2px solid #010101;
         }
 
-input[type=range]::-ms-track {
-  width: 100%;
-  height: 8.4px;
-  cursor: pointer;
-  background: transparent;
-  border-color: transparent;
-  border-width: 16px 0;
-  color: transparent;
-}
-input[type=range]::-ms-fill-lower {
-  background: #2a6495;
-  border: 0.2px solid #010101;
-  border-radius: 2.6px;
-  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
-}
-input[type=range]:focus::-ms-fill-lower {
-  background: #3071a9;
-}
-input[type=range]::-ms-fill-upper {
-  background: #3071a9;
-  border: 0.2px solid #010101;
-  border-radius: 2.6px;
-  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
-}
-input[type=range]:focus::-ms-fill-upper {
-  background: #367ebd;
-}
+        input[type=range]::-ms-track {
+            width: 100%;
+            height: 8.4px;
+            cursor: pointer;
+            background: transparent;
+            border-color: transparent;
+            border-width: 16px 0;
+            color: transparent;
+        }
+        input[type=range]::-ms-fill-lower {
+            background: #2a6495;
+            border: 0.2px solid #010101;
+            border-radius: 2.6px;
+            box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+        }
+        input[type=range]:focus::-ms-fill-lower {
+         background: #3071a9;
+        }
+        input[type=range]::-ms-fill-upper {
+            background: #3071a9;
+            border: 0.2px solid #010101;
+            border-radius: 2.6px;
+            box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+        }
+        input[type=range]:focus::-ms-fill-upper {
+           background: #367ebd;
+        }
     </style>
 </head>
 <body>
     <div class="controlbox">
+        <label for="fsize">Font Size</label>
+        <input type="range" name="fsize" id="fsize" min="8" max="120" value="48" onchange="changeParam()">
         <label for="speed">Speed</label>
-        <input type="range" name="speed" id="speed" min="10" max="100" value="30" onchange="changeSpeed()">
+        <input type="range" name="speed" id="speed" min="10" max="100" value="30" onchange="changeParam()">
         <input type="button" value="reset" onclick="reset();">
     </div>
     <canvas id="canvas">
@@ -101,6 +103,7 @@ input[type=range]:focus::-ms-fill-upper {
         var initiated = false;
         var pause = false;
         var interval = null;
+        var fsize = 48;
 
         canvas.addEventListener("click", init);
 
@@ -127,9 +130,10 @@ input[type=range]:focus::-ms-fill-upper {
             pause = false;
         }
 
-        function changeSpeed(){
+        function changeParam(){
             let speed = document.getElementById('speed').value;
             FPS = speed;
+            fsize = document.getElementById('fsize').value;
 
             clearInterval(interval);
             interval = setInterval(function(){
@@ -176,13 +180,18 @@ input[type=range]:focus::-ms-fill-upper {
 
         function draw(){
             resizeWindow();
-            ctx.font = '48px serif';
+            ctx.font = fsize + 'px serif';
             ctx.textAlign = "center";
             ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
             let mid = canvas.width / 2;
             if (queue.length != 0) {
+
+                console.log("last line: " + (queue.length - 1));
+                console.log("counter: " + counter);
+                console.log("canvas.height: " + canvas.height);
+
                 queue.forEach((text, index) => {
-                    let hh = counter + index * 54 + 54;
+                    let hh = counter + index * fsize * 1.4;
                     let seg = canvas.height / 9;
                     let opacy = hh /canvas.height;
                     opacy = opacy + 0.1;
@@ -202,7 +211,7 @@ input[type=range]:focus::-ms-fill-upper {
                 if (!pause) {
                     counter--;
                 }else{
-                    ctx.font = '248px serif';
+                    ctx.font = (fsize * 3) + 'px serif';
                     ctx.textAlign = "center";
                     ctx.fillStyle = 'rgba(150, 150, 150, 0.5)';
                     let aux1 = canvas.width / 2;
@@ -210,15 +219,22 @@ input[type=range]:focus::-ms-fill-upper {
                     ctx.fillText("Pause", aux1, aux2);
 
                 }
+
+                if (counter + queue.length < (-1) * canvas.height ) {
+                    if (interval !== null) {
+                        clearInterval(interval);
+                    }
+                }
+
             }else{
-                ctx.font = '68px serif';
+                ctx.font = (fsize * 1.5) + 'px serif';
                 ctx.textAlign = "center";
                 ctx.fillStyle = 'rgba(150, 150, 150, 0.5)';
                 let aux1 = canvas.width / 2;
                 let aux2 = canvas.height / 2;
-                ctx.fillText("Insert new text", aux1, aux2 - 84);
+                ctx.fillText("Insert new text", aux1, aux2 - (fsize * 1.4));
                 ctx.fillText("in the text area down", aux1, aux2);
-                ctx.fillText("and press reset button", aux1, aux2 + 84);
+                ctx.fillText("and press reset button", aux1, aux2 + (fsize * 1.4));
             }
         }
 
